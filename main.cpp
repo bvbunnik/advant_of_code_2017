@@ -1,9 +1,15 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <sstream>
+#include <istream>
+#include <iterator>
 #include <algorithm>
 #include <string>
+#include <map>
+#include <unordered_map>
 #include "Csv.h"
+
 
 //#define TESTING
 #ifdef TESTING
@@ -243,18 +249,149 @@ int day5_2(){
     return steps+1;
 }
 
+int day6_1() {
+    //{10,3,15,10,5,15,5,15,9,2,5,8,5,2,3,6}
+    std::vector<int> data = {10,3,15,10,5,15,5,15,9,2,5,8,5,2,3,6};//{0,2,7,0};
+    bool cont = true;
+    int steps = 0;
+    std::map<std::string, int> states;
+    while (cont){
+        auto bank = std::max_element(begin(data), end(data));
+        int blocks = *bank;
+        *bank = 0;
+        for (int i=0; i<blocks; ++i){
+            int start_bank = bank - begin(data)+1;
+            ++data.at((i+start_bank) % data.size());
+        }
+        std::cout<<data << "\n";
+        std::string state;
+        for (int i=0; i<data.size(); ++i){
+            state += std::to_string(data.at(i));
+        }
+        if (states.find(state)==states.end()){
+            states[state] = 1;
+            ++steps;
+        } else {
+            ++steps;
+            cont = false;
+        }
+    }
+    return steps;
+}
+
+int day6_2() {
+    //{10,3,15,10,5,15,5,15,9,2,5,8,5,2,3,6}
+    std::vector<int> data = {10,3,15,10,5,15,5,15,9,2,5,8,5,2,3,6};//{0,2,7,0};
+    bool cont = true;
+    int steps = 0;
+    int loop_size = 0;
+    std::map<std::string, int> states;
+    while (cont){
+        auto bank = std::max_element(begin(data), end(data));
+        int blocks = *bank;
+        *bank = 0;
+        for (int i=0; i<blocks; ++i){
+            int start_bank = bank - begin(data)+1;
+            ++data.at((i+start_bank) % data.size());
+        }
+
+        std::string state;
+        for (int i=0; i<data.size(); ++i){
+            state += std::to_string(data.at(i));
+        }
+        if (states.find(state)==states.end()){
+            states[state] = steps;
+            ++steps;
+        } else {
+            loop_size = steps - states.find(state)->second;
+            cont = false;
+        }
+    }
+    return loop_size;
+}
+
+void create_tree(std::vector<std::vector<int> > &data){
+
+}
+
+int calculate_cumulative_weights(const std::string& root, std::unordered_map<std::string, int>  &cumulative_weights,std::unordered_map<std::string, std::vector<std::string>> &edges,std::unordered_map<std::string, int> &vertices)
+{
+    ;
+    if (cumulative_weights[root] == 0)
+    {
+        cumulative_weights[root] = vertices[root] + std::accumulate(edges[root].begin(), edges[root].end(), 0,
+                                        [&](int w, auto s){ return w + calculate_cumulative_weights(s,cumulative_weights,edges,vertices); });
+    }
+    return cumulative_weights[root];
+}
+
+int search(const std::string& root, std::unordered_map<std::string, bool> &searched, std::unordered_map<std::string, std::vector<std::string>> &edges,std::unordered_map<std::string, int> &cumulative_weights,std::unordered_map<std::string, int> &vertices)
+{
+    if (!searched[root])
+    {
+        searched[root] = true;
+        std::unordered_map<int, int> weight_frequency;
+        for (auto& c : edges[root])
+            weight_frequency[cumulative_weights[c]]++;
+        if (weight_frequency.size() > 1)
+        {
+            auto a = weight_frequency.begin(), b = std::next(weight_frequency.begin());
+            if (b->second > a->second)
+                std::swap(a, b);
+            auto program = *std::find_if(edges[root].begin(), edges[root].end(),
+                                        [&](const std::string& s){return cumulative_weights[s] == b->first;});
+            int ret = search(program,searched, edges, cumulative_weights,vertices);
+            return ret ? ret : vertices[program] + a->first - b->first;
+        }
+    }
+    return 0;
+}
+
+int day7_2(){
+
+    std::unordered_map<std::string, int>  vertices;
+    std::unordered_map<std::string, std::vector<std::string>> edges;
+    std::unordered_map<std::string, bool> searched;
+    std::unordered_map<std::string, int>  cumulative_weights;
+    std::vector<std::vector<int> > data;
+
+    std::ifstream inFile("data_day7.txt");
+    for (std::string line; std::getline(inFile, line); )
+    {
+        std::string program_name = line.substr(0, line.find(' '));
+        vertices[program_name] = std::stoi(std::string{line.begin() + line.find('(') + 1, line.begin() + line.find(')')});
+        searched[program_name] = false;
+        auto idx = line.find("->");
+        if ( idx != std::string::npos)
+        {
+            std::string children_str = line.substr(idx + 2);
+            children_str.erase(std::remove(children_str.begin(), children_str.end(), ','), children_str.end());
+            std::stringstream ss (children_str);
+            edges.emplace(program_name, std::vector<std::string>{std::istream_iterator<std::string>{ss}, {}});
+        }
+    }
+
+    for (auto& p : vertices)
+    {
+        calculate_cumulative_weights(p.first, cumulative_weights, edges, vertices);
+        int r = search(p.first, searched, edges, cumulative_weights, vertices);
+        if (r){
+            return r;
+        }
+    }
+    return 0;
+}
+
 #ifndef TESTING
 int main(int argc, char *argv[])
 {
     //std::cout << day3_1(1) << "\n";
-    std::cout << day5_2() << "\n";
+    std::cout << day7_2() << "\n";
     //std::cout << day3_1(23) << "\n";
     //std::cout << day3_1(1024) << "\n";
     return 0;
 }
 #endif
-
-
 
 #ifdef TESTING
 TEST_CASE( "Factorials are computed", "[factorial]" ) {
