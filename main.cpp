@@ -382,13 +382,59 @@ int day7_2(){
     return 0;
 }
 
+bool compare(int amount1, std::string comparison, int amount2){
+    switch (comparison) {
+    case "<":
+        return (amount1 < amount2);
+        break;
+    case ">":
+        return (amount1 > amount2);
+        break;
+    case "<=":
+        return (amount1 <= amount2);
+        break;
+    case ">=":
+        return (amount1 >= amount2);
+        break;
+    case "==":
+        return (amount1 == amount2);
+        break;
+    case "!=":
+        return (amount1 != amount2);
+        break;
+    default:
+        break;
+    }
+}
+
+int day8_1()
+{
+    std::ifstream inFile("data_day8_test.txt");
+    Csv csv(inFile, " ");
+    std::vector<std::vector<std::string> > data;
+    csv.getall(data);
+    //data consists of [0] reg1, [1] command, [2] amount, [3] "if", [4] reg2, [5] comparison, [6] amount
+    std::map<std::string, int> registers;
+    for (auto i=begin(data); i!=end(data); ++i){
+        auto reg2 = registers.find(i->at(4));
+        if (reg2 != end(registers)){
+            if (compare(reg2->second, i->at(5), std::stoi(i->at(6)))){
+                registers[i->at(0)] = std::stoi(i->at(1));
+            }
+        } else {
+            if (compare(0, i->at(5), std::stoi(i->at(6)))){
+                registers[i->at(0)] = std::stoi(i->at(1));
+            }
+        }
+    }
+    return std::max(begin(registers), end(registers))->second;
+}
+
+
 #ifndef TESTING
 int main(int argc, char *argv[])
 {
-    //std::cout << day3_1(1) << "\n";
     std::cout << day7_2() << "\n";
-    //std::cout << day3_1(23) << "\n";
-    //std::cout << day3_1(1024) << "\n";
     return 0;
 }
 #endif
