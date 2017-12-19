@@ -480,10 +480,52 @@ int day8_2()
     return max;
 }
 
+int day9_1(){
+    int score = 0;
+    int level = 0;
+    int charCounter = 0;
+    bool ignore = false;
+    bool insideGarbage = false;
+    std::ifstream inFile("data_day9.txt");
+    char currentChar = inFile.get();
+    while (inFile.good()){
+        if (!ignore){
+            if (currentChar == '!'){
+                ignore = true;
+            } else {
+                if (insideGarbage){
+                    if (currentChar == '>'){
+                        insideGarbage = false;
+                    } else {
+                        charCounter++;
+                    }
+                } else {
+                    switch (currentChar){
+                        case '<':
+                            insideGarbage = true;
+                            break;
+                        case '{':
+                            level++;
+                            break;
+                        case '}':
+                            score += level;
+                            level--;
+                            break;
+                    }
+                }
+            }
+        } else {
+            ignore = false;
+        }
+        currentChar = inFile.get();
+    }
+    return charCounter;
+}
+
 #ifndef TESTING
 int main(int argc, char *argv[])
 {
-    std::cout << day8_2() << "\n";
+    std::cout << day9_1() << "\n";
     return 0;
 }
 #endif
