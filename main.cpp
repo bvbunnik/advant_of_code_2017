@@ -383,33 +383,38 @@ int day7_2(){
 }
 
 bool compare(int amount1, std::string comparison, int amount2){
-    switch (comparison) {
-    case "<":
+    if (comparison.compare("<")==0){
         return (amount1 < amount2);
-        break;
-    case ">":
-        return (amount1 > amount2);
-        break;
-    case "<=":
-        return (amount1 <= amount2);
-        break;
-    case ">=":
-        return (amount1 >= amount2);
-        break;
-    case "==":
-        return (amount1 == amount2);
-        break;
-    case "!=":
-        return (amount1 != amount2);
-        break;
-    default:
-        break;
     }
+    if (comparison.compare(">")==0){
+        return (amount1 > amount2);
+    }
+    if (comparison.compare("<=")==0){
+        return (amount1 <= amount2);
+    }
+    if (comparison.compare(">=")==0){
+        return (amount1 >= amount2);
+    }
+    if (comparison.compare("==")==0){
+        return (amount1 == amount2);
+    }
+    if (comparison.compare("!=")==0){
+        return (amount1 != amount2);
+    }
+    return -1;
+}
+
+template<typename KeyType, typename ValueType>
+std::pair<KeyType,ValueType> get_max( const std::map<KeyType,ValueType>& x ) {
+  using pairtype=std::pair<KeyType,ValueType>;
+  return *std::max_element(x.begin(), x.end(), [] (const pairtype & p1, const pairtype & p2) {
+        return p1.second < p2.second;
+  });
 }
 
 int day8_1()
 {
-    std::ifstream inFile("data_day8_test.txt");
+    std::ifstream inFile("data_day8.txt");
     Csv csv(inFile, " ");
     std::vector<std::vector<std::string> > data;
     csv.getall(data);
@@ -419,22 +424,66 @@ int day8_1()
         auto reg2 = registers.find(i->at(4));
         if (reg2 != end(registers)){
             if (compare(reg2->second, i->at(5), std::stoi(i->at(6)))){
-                registers[i->at(0)] = std::stoi(i->at(1));
+                if (i->at(1).compare("inc")==0){
+                    registers[i->at(0)] += std::stoi(i->at(2));
+                } else {
+                      registers[i->at(0)] -= std::stoi(i->at(2));
+                }
             }
         } else {
             if (compare(0, i->at(5), std::stoi(i->at(6)))){
-                registers[i->at(0)] = std::stoi(i->at(1));
+                if (i->at(1).compare("inc")==0){
+                    registers[i->at(0)] += std::stoi(i->at(2));
+                } else {
+                    registers[i->at(0)] -= std::stoi(i->at(2));
+                }
             }
         }
     }
-    return std::max(begin(registers), end(registers))->second;
+    auto max = get_max(registers);
+    return max.second;
 }
 
+int day8_2()
+{
+    std::ifstream inFile("data_day8.txt");
+    Csv csv(inFile, " ");
+    std::vector<std::vector<std::string> > data;
+    csv.getall(data);
+    int max = 0;
+    //data consists of [0] reg1, [1] command, [2] amount, [3] "if", [4] reg2, [5] comparison, [6] amount
+    std::map<std::string, int> registers;
+    for (auto i=begin(data); i!=end(data); ++i){
+        auto reg2 = registers.find(i->at(4));
+        if (reg2 != end(registers)){
+            if (compare(reg2->second, i->at(5), std::stoi(i->at(6)))){
+                if (i->at(1).compare("inc")==0){
+                    registers[i->at(0)] += std::stoi(i->at(2));
+
+                } else {
+                    registers[i->at(0)] -= std::stoi(i->at(2));
+                }
+            }
+        } else {
+            if (compare(0, i->at(5), std::stoi(i->at(6)))){
+                if (i->at(1).compare("inc")==0){
+                    registers[i->at(0)] += std::stoi(i->at(2));
+                } else {
+                    registers[i->at(0)] -= std::stoi(i->at(2));
+                }
+            }
+        }
+        if(registers[i->at(0)]>max){
+            max = registers[i->at(0)];
+        }
+    }
+    return max;
+}
 
 #ifndef TESTING
 int main(int argc, char *argv[])
 {
-    std::cout << day7_2() << "\n";
+    std::cout << day8_2() << "\n";
     return 0;
 }
 #endif
