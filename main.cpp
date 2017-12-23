@@ -519,13 +519,20 @@ int day9_1(){
         }
         currentChar = inFile.get();
     }
-    return charCounter;
+    //return score; (day9_1)
+    return charCounter; //(day9_2)
 }
+
+int day10_1()
+{
+
+}
+
 
 #ifndef TESTING
 int main(int argc, char *argv[])
 {
-    std::cout << day9_1() << "\n";
+    std::cout << day10_1() << "\n";
     return 0;
 }
 #endif
